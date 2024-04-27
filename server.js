@@ -23,6 +23,26 @@ function verifyJSON(json) {
     return true;
 }
 
+function verifyJSON2(json) {
+    if (!Array.isArray(json)) {
+        return false;
+    }
+
+    for (let i = 0; i < json.length; i++) {
+        const obj = json[i];
+        if (
+            typeof obj.ip !== "string" ||
+            typeof obj.port !== "number" ||
+            typeof obj.banner !== "string" ||
+            typeof obj.status !== "string"
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 app.get('/sshserver', (req, res) => {
     // Read the scan results from the JSON file
     try {
@@ -63,9 +83,11 @@ const scanNetworkArea = async () => {
             var output_string = new TextDecoder().decode(stdout);
 
             output_string = output_string.replaceAll('"}\n', '"},\n');
-            output_string = output_string.substring(0, output_string.length-2);
+            output_string = output_string.substring(0, output_string.length - 2);
 
-            fs.writeFileSync('scan-results.json', '[' + output_string + ']');
+            var json = JSON.parse('[' + output_string + ']');
+            
+            if (verifyJSON2(json)) fs.writeFileSync('scan-results.json', '[' + output_string + ']');
         });
 
     } catch (error) {
