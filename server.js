@@ -65,8 +65,8 @@ app.post('/raeume', (req, res) => {
     }    
 });
 
-app.listen(3001, () => {
-    console.log('Server is running on port 3001');
+app.listen(process.env.Port || 8080, () => {
+    console.log('Server is running on port ' + (process.env.Port || 8080));
 
     scanNetworkArea();
 });
@@ -95,5 +95,23 @@ const scanNetworkArea = async () => {
     }
 };
 
-setInterval(scanNetworkArea, 10 * 60 * 1000); // Run every 10 minutes
+app.post('/intervall', (req, res) => {
+    try {
+        const intervall = Number(req.body);
+        intervallFunktion = null;
+        intervallFunktion = setInterval(scanNetworkArea, intervall * 1000); // Run every 10 minutes
+        res.status(200).send('Sucheräume geändert.');
+    } catch (error) {
+        res.status(500).send('Nicht gültiger Wert.', error);
+    }
+    
+    if (!verifyJSON(scanAreas)) {
+        res.status(500).send('Ungültiges Format.');
+    } else {
+        fs.writeFileSync('raeume.json', JSON.stringify(scanAreas));
+        res.status(200).send('Sucheräume geändert.');
+    }
+});
+
+var intervallFunktion = setInterval(scanNetworkArea, (process.env.Periode || 600) * 1000); // Run every 10 minutes
 
